@@ -9,12 +9,14 @@ class EmailValidator < ActiveModel::EachValidator
   local_part_quoted        = '\"([[:alnum:]' + local_part_special_chars + '\.]|\\\\[\x00-\xFF])*\"'
   Pattern   = Regexp.new('\A(' + local_part_unquoted + '|' + local_part_quoted + '+)@(((\w+\-+[^_])|(\w+\.[a-z0-9-]*))*([a-z0-9-]{1,63})\.[a-z]{2,6}(?:\.[a-z]{2,6})?\Z)', Regexp::EXTENDED | Regexp::IGNORECASE, 'n')
 
-  def validate_email_domain(email)
-    domain = email.match(/\@(.+)/)[1]
+  def validate_email_domain(domain)
     Resolv::DNS.open do |dns|
-      @mx = dns.getresources(domain, Resolv::DNS::Resource::IN::MX) + dns.getresources(domain, Resolv::DNS::Resource::IN::A)
+      dns.getresources(domain, Resolv::DNS::Resource::IN::MX).size > 0
     end
-    @mx.size > 0 ? true : false
+
+  rescue Errno::ECONNREFUSED, NoMethodError
+    # DNS is not available - thus return true
+    true
   end
 
   # Validates whether the specified value is a valid email address.  Returns nil if the value is valid, otherwise returns an array
@@ -73,7 +75,7 @@ class EmailValidator < ActiveModel::EachValidator
          value !~ options[:with]
         options[:message]
 
-      elsif options[:check_mx] && !validate_email_domain(value)
+      elsif options[:check_mx] && !validate_email_domain(domain)
         options[:mx_message]
 
       end
