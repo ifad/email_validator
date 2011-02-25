@@ -1,12 +1,9 @@
 class Person < ActiveRecord::Base
-  validates_email_format_of :email, 
-                            :on => :create, 
-                            :message => 'fails with custom message', 
-                            :allow_nil => true
+  validates :email, :email => {:message => 'fails with custom message'},
+                    :on    => :create
 end
 
 class MxRecord < ActiveRecord::Base
-  validates_email_format_of :email, 
-                            :on => :create, 
-                            :check_mx => true
+  validates :email, :email => {:check_mx => true},
+                    :on    => :create
 end
