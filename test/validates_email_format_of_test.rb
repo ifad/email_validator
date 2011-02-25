@@ -38,7 +38,7 @@ class ValidatesEmailFormatOfTest < TEST_CASE
      "test'test@example.com",
      ].each do |email|
       p = create_person(:email => email)
-      save_passes(p, email)
+      save_passes(p)
     end
   end
 
@@ -71,7 +71,7 @@ class ValidatesEmailFormatOfTest < TEST_CASE
      "foo@example.com\nexample@gmail.com",
      'invalid@example.'].each do |email|
       p = create_person(:email => email)
-      save_fails(p, email)
+      save_fails(p)
     end
   end
 
@@ -82,7 +82,7 @@ class ValidatesEmailFormatOfTest < TEST_CASE
      '"Joe.\\Blow"@example.com',
      ].each do |email|
       p = create_person(:email => email)
-      save_passes(p, email)
+      save_passes(p)
     end
   end
 
@@ -94,7 +94,7 @@ class ValidatesEmailFormatOfTest < TEST_CASE
      'Joe.\\Blow@example.com'
      ].each do |email|
       p = create_person(:email => email)
-      save_fails(p, email)
+      save_fails(p)
     end
   end
 
@@ -103,7 +103,7 @@ class ValidatesEmailFormatOfTest < TEST_CASE
      'test@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.com'
      ].each do |email|
       p = create_person(:email => email)
-      save_fails(p, email)
+      save_fails(p)
     end
   end
 
@@ -152,14 +152,14 @@ class ValidatesEmailFormatOfTest < TEST_CASE
       Person.new(params)
     end
 
-    def save_passes(p, email = '')
-      assert p.valid?, " validating #{email}"
+    def save_passes(p)
+      assert p.valid?, " validating #{p.email}"
       assert p.save
       assert_equal [], p.errors[:email]
     end
 
-    def save_fails(p, email = '')
-      assert !p.valid?, " validating #{email}"
+    def save_fails(p)
+      assert !p.valid?, " validating #{p.email}"
       assert !p.save
       assert_equal 1, p.errors[:email].size
     end
