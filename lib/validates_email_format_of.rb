@@ -7,7 +7,17 @@ class EmailValidator < ActiveModel::EachValidator
   local_part_special_chars = Regexp.escape('!#$%&\'*-/=?+-^_`{|}~')
   local_part_unquoted      = '([[:alnum:]'   + local_part_special_chars + ']+[\.\+])*[[:alnum:]' + local_part_special_chars + '+]+'
   local_part_quoted        = '\"([[:alnum:]' + local_part_special_chars + '\.]|\\\\[\x00-\xFF])*\"'
-  Pattern   = Regexp.new('\A(' + local_part_unquoted + '|' + local_part_quoted + '+)@(((\w+\-+[^_])|(\w+\.[a-z0-9-]*))*([a-z0-9-]{1,63})\.[a-z]{2,6}(?:\.[a-z]{2,6})?\Z)', Regexp::EXTENDED | Regexp::IGNORECASE, 'n')
+  Pattern   = Regexp.new('\A(' + local_part_unquoted + '|' + local_part_quoted + '+)@(((\w+\-+[^_])|(\w+\.[a-z0-9-]*))*([a-z0-9-]{1,63})\.[a-z]{2,6}(?:\.[a-z]{2,6})?\Z)', Regexp::EXTENDED | Regexp::IGNORECASE, 'n').freeze
+  Separator = /[;,\s]\s*/.freeze # for multiple e-mail addresses
+  Defaults  = {
+    :message          => I18n.t(:invalid_email_address,    :scope => [:activerecord, :errors, :messages], :default => 'does not appear to be a valid e-mail address'),
+    :multiple_message => I18n.t(:invalid_multiple_email,   :scope => [:activerecord, :errors, :messages], :default => 'appears to contain an invalid e-mail address'),
+    :mx_message       => I18n.t(:unroutable_email_address, :scope => [:activerecord, :errors, :messages], :default => 'is not routable'),
+    :check_mx         => false,
+    :with             => Pattern,
+    :local_length     => 64,
+    :domain_length    => 255
+  }.freeze
 
   def validate_email_domain(domain)
     Resolv::DNS.open do |dns|
@@ -36,31 +46,23 @@ class EmailValidator < ActiveModel::EachValidator
   # * <tt>multiple_message</tt> - A custom error message shown when there are 2 or more addresses
   #                               to validate and one or more is invalid
   #                               (default: "appears to contain an invalid e-mail address)
-  #
   # * <tt>local_length</tt>     - Maximum number of characters allowed in the local part
   #                               (default: 64)
   # * <tt>domain_length</tt>    - Maximum number of characters allowed in the domain part
   #                               (default: 255)
   def validate_each(record, attribute, value)
-    options = default_options.update(self.options)
     return if value.blank? # Use :presence => true
-
-    error = options[:multiple] ? validate_many(value, options) : validate_one(value, options)
+    error = self.class.check(value, self.options)
     record.errors.add(attribute, :invalid, :message => error, :value => value) if error
   end
 
-  private
-    def default_options
-      { :message          => I18n.t(:invalid_email_address,    :scope => [:activerecord, :errors, :messages], :default => 'does not appear to be a valid e-mail address'),
-        :multiple_message => I18n.t(:invalid_multiple_email,   :scope => [:activerecord, :errors, :messages], :default => 'appears to contain an invalid e-mail address'),
-        :mx_message       => I18n.t(:unroutable_email_address, :scope => [:activerecord, :errors, :messages], :default => 'is not routable'),
-        :check_mx         => false,
-        :with             => Pattern,
-        :local_length     => 64,
-        :domain_length    => 255
-      }
+  class << self
+    def check(email, options = {})
+      options = Defaults.merge(options)
+      options[:multiple] ? validate_many(email, options) : validate_one(email, options)
     end
 
+  private
     def validate_many(value, options)
       emails = value.split(Separator)
       errors = emails.map {|addr| validate_one(addr, options)}
@@ -80,4 +82,6 @@ class EmailValidator < ActiveModel::EachValidator
 
       end
     end
+
+  end
 end
