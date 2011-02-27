@@ -34,13 +34,7 @@ class EmailValidator < ActiveModel::EachValidator
   # * <tt>domain_length</tt>    - Maximum number of characters allowed in the domain part
   #                               (default: 255)
   def validate_each(record, attribute, value)
-    options = {
-      :message    => I18n.t(:invalid_email_address, :scope => [:activerecord, :errors, :messages], :default => 'does not appear to be a valid e-mail address'),
-      :check_mx   => false,
-      :mx_message => I18n.t(:email_address_not_routable, :scope => [:activerecord, :errors, :messages], :default => 'is not routable'),
-      :with       => Regex
-    }.update(self.options)
-
+    options = default_options.update(self.options)
     return if value.blank? # Use :presence => true
 
     record.errors[attribute] =
@@ -49,5 +43,17 @@ class EmailValidator < ActiveModel::EachValidator
       elsif options[:check_mx] && !validate_email_domain(value)
         options[:mx_message]
       end
+
+  private
+    def default_options
+      { :message          => I18n.t(:invalid_email_address,    :scope => [:activerecord, :errors, :messages], :default => 'does not appear to be a valid e-mail address'),
+        :multiple_message => I18n.t(:invalid_multiple_email,   :scope => [:activerecord, :errors, :messages], :default => 'appears to contain an invalid e-mail address'),
+        :mx_message       => I18n.t(:unroutable_email_address, :scope => [:activerecord, :errors, :messages], :default => 'is not routable'),
+        :check_mx         => false,
+        :with             => Pattern,
+        :local_length     => 64,
+        :domain_length    => 255
+      }
+    end
   end
 end
