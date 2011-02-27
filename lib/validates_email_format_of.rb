@@ -2,10 +2,10 @@
 module ValidatesEmailFormatOf
   require 'resolv'
   
-  LocalPartSpecialChars = Regexp.escape('!#$%&\'*-/=?+-^_`{|}~')
-  LocalPartUnquoted = '([[:alnum:]' + LocalPartSpecialChars + ']+[\.]+)*[[:alnum:]' + LocalPartSpecialChars + '+]+'
-  LocalPartQuoted = '\"([[:alnum:]' + LocalPartSpecialChars + '\.]|\\\\[\x00-\xFF])*\"'
-  Regex = Regexp.new('\A(' + LocalPartUnquoted + '|' + LocalPartQuoted + '+)@(((\w+\-+[^_])|(\w+\.[a-z0-9-]*))*([a-z0-9-]{1,63})\.[a-z]{2,6}(?:\.[a-z]{2,6})?\Z)', Regexp::EXTENDED | Regexp::IGNORECASE, 'n')
+  local_part_special_chars = Regexp.escape('!#$%&\'*-/=?+-^_`{|}~')
+  local_part_unquoted      = '([[:alnum:]'   + local_part_special_chars + ']+[\.\+])*[[:alnum:]' + local_part_special_chars + '+]+'
+  local_part_quoted        = '\"([[:alnum:]' + local_part_special_chars + '\.]|\\\\[\x00-\xFF])*\"'
+  Regex = Regexp.new('\A(' + local_part_unquoted + '|' + local_part_quoted + '+)@(((\w+\-+[^_])|(\w+\.[a-z0-9-]*))*([a-z0-9-]{1,63})\.[a-z]{2,6}(?:\.[a-z]{2,6})?\Z)', Regexp::EXTENDED | Regexp::IGNORECASE, 'n')
 
   def self.validate_email_domain(email)
     domain = email.match(/\@(.+)/)[1]
@@ -14,7 +14,7 @@ module ValidatesEmailFormatOf
     end
     @mx.size > 0 ? true : false
   end
-  
+
   # Validates whether the specified value is a valid email address.  Returns nil if the value is valid, otherwise returns an array
   # containing one or more validation error messages.
   #
