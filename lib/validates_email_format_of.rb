@@ -29,6 +29,12 @@ class EmailValidator < ActiveModel::EachValidator
   #                               (default: "is not routable.")
   # * <tt>with</tt>             - The regex to use for validating the format of the email address
   #                               (default: +Pattern+)</tt>
+  # * <tt>multiple</tt>         - Allow multiple e-mail addresses, separated by +Separator+
+  #                               (default: false)
+  # * <tt>multiple_message</tt> - A custom error message shown when there are 2 or more addresses
+  #                               to validate and one or more is invalid
+  #                               (default: "appears to contain an invalid e-mail address)
+  #
   # * <tt>local_length</tt>     - Maximum number of characters allowed in the local part
   #                               (default: 64)
   # * <tt>domain_length</tt>    - Maximum number of characters allowed in the domain part
@@ -37,12 +43,9 @@ class EmailValidator < ActiveModel::EachValidator
     options = default_options.update(self.options)
     return if value.blank? # Use :presence => true
 
-    record.errors[attribute] =
-      if !value =~ options[:with]
-        options[:message]
-      elsif options[:check_mx] && !validate_email_domain(value)
-        options[:mx_message]
-      end
+    error = options[:multiple] ? validate_many(value, options) : validate_one(value, options)
+    record.errors.add(attribute, :invalid, :message => error, :value => value) if error
+  end
 
   private
     def default_options
@@ -55,5 +58,24 @@ class EmailValidator < ActiveModel::EachValidator
         :domain_length    => 255
       }
     end
-  end
+
+    def validate_many(value, options)
+      emails = value.split(Separator)
+      errors = emails.map {|addr| validate_one(addr, options)}
+      errors.compact!
+      options[emails.size == 1 ? :message : :multiple_message] unless errors.empty?
+    end
+
+    def validate_one(value, options)
+      local, domain = value.split('@', 2)
+      if local.nil?  || local.length  > options[:local_length]  or
+         domain.nil? || domain.length > options[:domain_length] or
+         value !~ options[:with]
+        options[:message]
+
+      elsif options[:check_mx] && !validate_email_domain(value)
+        options[:mx_message]
+
+      end
+    end
 end
