@@ -1,6 +1,6 @@
 require File.expand_path(File.dirname(__FILE__) + '/test_helper')
 
-class ValidatesEmailFormatOfTest < TEST_CASE
+class EmailValidatorTest < TEST_CASE
   fixtures :people
 
   def setup
