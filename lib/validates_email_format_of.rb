@@ -19,18 +19,9 @@ class EmailValidator < ActiveModel::EachValidator
     :domain_length    => 255
   }.freeze
 
-  def validate_email_domain(domain)
-    Resolv::DNS.open do |dns|
-      dns.getresources(domain, Resolv::DNS::Resource::IN::MX).size > 0
-    end
-
-  rescue Errno::ECONNREFUSED, NoMethodError
-    # DNS is not available - thus return true
-    true
-  end
-
-  # Validates whether the specified value is a valid email address.  Returns nil if the value is valid, otherwise returns an array
-  # containing one or more validation error messages.
+  # Validates whether the specified value is a valid email address,
+  # and uses record.errors.add() to add the error if the provided
+  # value is not valid.
   #
   # Configuration options:
   # * <tt>message</tt>          - A custom error message
@@ -81,6 +72,16 @@ class EmailValidator < ActiveModel::EachValidator
         options[:mx_message]
 
       end
+    end
+
+    def validate_email_domain(domain)
+      Resolv::DNS.open do |dns|
+        dns.getresources(domain, Resolv::DNS::Resource::IN::MX).size > 0
+      end
+
+    rescue Errno::ECONNREFUSED, NoMethodError
+      # DNS is not available - thus return true
+      true
     end
 
   end
