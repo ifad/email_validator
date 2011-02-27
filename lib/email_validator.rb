@@ -5,10 +5,10 @@ require 'resolv'
 class EmailValidator < ActiveModel::EachValidator
 
   local_part_special_chars = Regexp.escape('!#$%&\'*-/=?+-^_`{|}~')
-  local_part_unquoted      = '([[:alnum:]'   + local_part_special_chars + ']+[\.\+])*[[:alnum:]' + local_part_special_chars + '+]'
-  local_part_quoted        = '\"([[:alnum:]' + local_part_special_chars + '\.]|\\\\[\x00-\xFF])*\"'
-  domain_part              = '@(((\w+\-+[^_])|(\w+\.[a-z0-9-]*))*([a-z0-9-]{1,63})\.[a-z]{2,6}(?:\.[a-z]{2,6})?'
-  Pattern   = Regexp.new('\A(' + local_part_unquoted + '+|' + local_part_quoted + '+)' + domain_part + '\Z)', Regexp::EXTENDED | Regexp::IGNORECASE, 'n').freeze
+  local_part_unquoted      = '(?:[[:alnum:]'   + local_part_special_chars + ']+[\.\+])*[[:alnum:]' + local_part_special_chars + '+]'
+  local_part_quoted        = '\"(?:[[:alnum:]' + local_part_special_chars + '\.]|\\\\[\x00-\xFF])*\"'
+  domain_part              = '@(?:(?:(?:\w+\-+[^_])|(?:\w+\.[a-z0-9-]*))*(?:[a-z0-9-]{1,63})\.[a-z]{2,6}(?:\.[a-z]{2,6})?'
+  Pattern   = Regexp.new('\A(?:' + local_part_unquoted + '+|' + local_part_quoted + '+)' + domain_part + '\Z)', Regexp::EXTENDED | Regexp::IGNORECASE, 'n').freeze
   Separator = /[;,\s]\s*/.freeze # for multiple e-mail addresses
   Defaults  = {
     :message          => I18n.t(:invalid_email_address,    :scope => [:activerecord, :errors, :messages], :default => 'does not appear to be a valid e-mail address'),
