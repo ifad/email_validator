@@ -2,12 +2,14 @@ require 'rake'
 require 'rake/testtask'
 require 'rake/rdoctask'
 
+require 'pathname'
+
 desc 'Default: run unit tests.'
-task :default => [:clean_log, :test]
+task :default => [:clean, :test]
 
 desc 'Remove the old log file'
-task :clean_log do
-  "rm -f #{File.dirname(__FILE__)}/test/debug.log" if File.exists?(File.dirname(__FILE__) + '/test/debug.log')
+task :clean do
+  Pathname(__FILE__).dirname.join('test', 'debug.log').unlink rescue nil
 end
 
 desc 'Test the validates_email_format_of plugin.'
