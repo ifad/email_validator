@@ -2,7 +2,7 @@ require 'rake'
 
 spec = Gem::Specification.new do |s|
   s.name             = 'vjt-email_validator'
-  s.version          = '1.5.0'
+  s.version          = '1.5.1'
   s.summary          = 'Validate e-mail addresses against RFC 2822 and RFC 3696.'
   s.description      = 'ActiveModel::EachValidator to check for valid e-mail addresses'
   s.extra_rdoc_files = %w( README.rdoc CHANGELOG.rdoc MIT-LICENSE )
