@@ -10,13 +10,7 @@ Validate e-mail addresses against RFC 2822 and RFC 3696.
 
 Standalone:
 
-  errors = EmailValidator.check(email)
-
-  if errors.nil?
-    # success!
-  else
-    puts results.join(', ')
-  end
+  EmailValidator.valid?(email) # => true or false
 
 Inside an ActiveRecord model:
 

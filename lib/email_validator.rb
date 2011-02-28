@@ -44,12 +44,16 @@ class EmailValidator < ActiveModel::EachValidator
   #                               (default: 255)
   def validate_each(record, attribute, value)
     return if value.blank? # Use :presence => true
-    error = self.class.check(value, self.options)
+    error = self.class.errors_on(value, self.options)
     record.errors.add(attribute, :invalid, :message => error, :value => value) if error
   end
 
   class << self
-    def check(email, options = {})
+    def valid?(email, options = {})
+      errors_on(email, options).nil?
+    end
+
+    def errors_on(email, options)
       options = Defaults.merge(options)
       options[:multiple] ? validate_many(email, options) : validate_one(email, options)
     end

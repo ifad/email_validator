@@ -107,11 +107,6 @@ class EmailValidatorTest < TEST_CASE
     end
   end
 
-  def test_overriding_length_checks
-    assert_not_nil EmailValidator.check('valid@example.com', :local_length  => 1)
-    assert_not_nil EmailValidator.check('valid@example.com', :domain_length => 1)
-  end
-
   def test_should_respect_validate_on_option
     p = create_person(:email => @valid_email)
     save_passes(p)
@@ -141,10 +136,14 @@ class EmailValidatorTest < TEST_CASE
     save_fails(pmx)
   end
 
-  # TODO: find a future-proof way to check DNS records
-  def test_check_mx_fallback_to_a
-    pmx = MxRecord.new(:email => 'test@code.dunae.ca')
-    save_passes(pmx)
+  def test_should_be_usable_standalone
+    assert_equal true,  EmailValidator.valid?('vjt@openssl.it')
+    assert_equal false, EmailValidator.valid?('antani')
+  end
+
+  def test_overriding_length_checks
+    assert_equal false, EmailValidator.valid?('valid@example.com', :local_length  => 1)
+    assert_equal false, EmailValidator.valid?('valid@example.com', :domain_length => 1)
   end
 
   protected
