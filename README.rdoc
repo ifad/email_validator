@@ -8,9 +8,21 @@ Validate e-mail addresses against RFC 2822 and RFC 3696.
 
 == Usage
 
- class Person < ActiveRecord::Base
-   validates :email, :email => true
- end
+Standalone:
+
+  errors = EmailValidator.check(email)
+
+  if errors.nil?
+    # success!
+  else
+    puts results.join(', ')
+  end
+
+Inside an ActiveRecord model:
+
+  class Person < ActiveRecord::Base
+    validates :email, :email => true
+  end
 
 === Options
 
