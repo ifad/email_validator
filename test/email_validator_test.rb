@@ -146,6 +146,17 @@ class EmailValidatorTest < TEST_CASE
     assert_equal false, EmailValidator.valid?('valid@example.com', :domain_length => 1)
   end
 
+  def test_scanning_of_addresses
+    assert_equal ['vjt@openssl.it', 'alex@dunae.ca'], EmailValidator.extract(%[
+      foo bar antani         tapioca   vjt@openssl.it
+                 blatantly@wrong    and.ano@ther-hey49039403.4930
+      alex@dunae.ca      hey man can I haz       chunky bacon?!
+      :-)
+    ])
+
+    assert_equal ['foo@example.org'], EmailValidator.extract('foo@example.org')
+  end
+
   protected
     def create_person(params)
       Person.new(params)

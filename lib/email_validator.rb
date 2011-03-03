@@ -8,8 +8,13 @@ class EmailValidator < ActiveModel::EachValidator
   local_part_unquoted      = '(?:[[:alnum:]'   + local_part_special_chars + ']+[\.\+])*[[:alnum:]' + local_part_special_chars + '+]'
   local_part_quoted        = '\"(?:[[:alnum:]' + local_part_special_chars + '\.]|\\\\[\x00-\xFF])*\"'
   domain_part              = '@(?:(?:(?:\w+\-+[^_])|(?:\w+\.[a-z0-9-]*))*(?:[a-z0-9-]{1,63})\.[a-z]{2,6}(?:\.[a-z]{2,6})?)'
-  Pattern   = Regexp.new('\A(?:' + local_part_unquoted + '+|' + local_part_quoted + '+)' + domain_part + '\Z', Regexp::EXTENDED | Regexp::IGNORECASE, 'n').freeze
+
+  email_address_regexp     = '(?:' + local_part_unquoted + '+|' + local_part_quoted + '+)' + domain_part
+
+  Pattern   = Regexp.new('\A' + email_address_regexp + '\Z', Regexp::EXTENDED | Regexp::IGNORECASE, 'n').freeze
+  Scanner   = Regexp.new(       email_address_regexp,        Regexp::EXTENDED | Regexp::IGNORECASE, 'n').freeze
   Separator = /[;,\s]\s*/.freeze # for multiple e-mail addresses
+
   Defaults  = {
     :message          => I18n.t(:invalid_email_address,    :scope => [:activerecord, :errors, :messages], :default => 'does not appear to be a valid e-mail address'),
     :multiple_message => I18n.t(:invalid_multiple_email,   :scope => [:activerecord, :errors, :messages], :default => 'appears to contain an invalid e-mail address'),
@@ -49,6 +54,10 @@ class EmailValidator < ActiveModel::EachValidator
   end
 
   class << self
+    def extract(string)
+      string.scan(Scanner)
+    end
+
     def valid?(email, options = {})
       errors_on(email, options).nil?
     end
