@@ -11,8 +11,8 @@ class EmailValidator < ActiveModel::EachValidator
 
   email_address_regexp     = '(?:' + local_part_unquoted + '+|' + local_part_quoted + '+)' + domain_part
 
-  Pattern   = Regexp.new('\A' + email_address_regexp + '\Z', Regexp::EXTENDED | Regexp::IGNORECASE, 'nu').freeze
-  Scanner   = Regexp.new(       email_address_regexp,        Regexp::EXTENDED | Regexp::IGNORECASE, 'nu').freeze
+  Pattern   = Regexp.new('\A' + email_address_regexp + '\Z', Regexp::EXTENDED | Regexp::IGNORECASE, 'n').freeze
+  Scanner   = Regexp.new(       email_address_regexp,        Regexp::EXTENDED | Regexp::IGNORECASE, 'n').freeze
   Separator = /[;,\s]\s*/.freeze # for multiple e-mail addresses
 
   Defaults  = {
@@ -55,6 +55,9 @@ class EmailValidator < ActiveModel::EachValidator
 
   class << self
     def extract(string)
+      if string.respond_to?(:encode)
+        string = string.encode('ascii', :undef => :replace)
+      end
       string.scan(Scanner)
     end
 
